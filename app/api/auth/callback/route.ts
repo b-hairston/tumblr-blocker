@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
     return response;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError<{ meta: { status: number; msg: string }; errors: any[] }>;
+      const axiosError = error as AxiosError<{ meta: { status: number; msg: string }; errors: unknown[] }>;
       if (axiosError.response) {
         console.error("Error response from Tumblr:", axiosError.response.data);
         return NextResponse.json({
