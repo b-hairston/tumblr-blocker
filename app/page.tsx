@@ -1,101 +1,89 @@
-import Image from "next/image";
+// app/page.tsx
+"use client";
 
-export default function Home() {
+import { useState, useEffect } from "react";
+import axios from "axios";
+
+export default function HomePage() {
+  const [sourceAuthenticated, setSourceAuthenticated] = useState(false);
+  const [sourceBlog, setSourceBlog] = useState("");
+  const [targetBlog, setTargetBlog] = useState("");
+
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      const response = await axios.get("/api/auth/status");
+      setSourceAuthenticated(response.data.sourceAuthenticated);
+    };
+    checkAuthStatus();
+  }, []);
+
+  const loginWithTumblr = () => {
+    window.location.href = `/api/auth/login?accountType=source`; // Only need source account for this flow
+  };
+
+  const handleTransfer = async () => {
+    if (!sourceAuthenticated) {
+      alert("Please log in to your source account.");
+      return;
+    }
+    try {
+      const response = await axios.post("/api/transfer", { sourceBlog, targetBlog });
+      alert(response.data.message);
+    } catch (error) {
+      console.error("Error during transfer:", error);
+      alert("Failed to transfer blocks: " + error.response?.data.error || "Unknown error");
+    }
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+    <div className="space-y-6">
+      {!sourceAuthenticated ? (
+        <button
+          onClick={loginWithTumblr}
+          className="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none"
+        >
+          Login with Tumblr (Source Account)
+        </button>
+      ) : (
+        <>
+          <div>
+            <label htmlFor="sourceBlog" className="block text-sm font-medium text-gray-700">
+              Source Blog Identifier
+            </label>
+            <input
+              type="text"
+              id="sourceBlog"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              value={sourceBlog}
+              onChange={(e) => setSourceBlog(e.target.value)}
+              placeholder="Enter source blog ID"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          </div>
+
+          <div>
+            <label htmlFor="targetBlog" className="block text-sm font-medium text-gray-700">
+              Target Blog Identifier
+            </label>
+            <input
+              type="text"
+              id="targetBlog"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              value={targetBlog}
+              onChange={(e) => setTargetBlog(e.target.value)}
+              placeholder="Enter target blog ID"
+            />
+          </div>
+
+          <button
+            onClick={handleTransfer}
+            className="w-full py-2 px-4 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none"
           >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+            Transfer Blocks
+          </button>
+        </>
+      )}
     </div>
   );
 }
+// TODO: add credentials entries for both accounts FUCK THATS WHY NOTHING WORKED DAMMIT
+//SIMPLIFY FLOW: AUTH TO ACCT 1, GET BLOCKS, AUTH TO ACCT 2, BULK BLOCK
