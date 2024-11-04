@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
         },
       }
     );
-
+    console.log("TARGET BLOG:",targetBlog)
     if (bulkBlockResponse.status === 200) {
       return NextResponse.json({ message: "Bulk block on target completed successfully!" });
     } else {

@@ -28,6 +28,8 @@ export default function HomePage() {
   };
 
   const loginWithTarget = () => {
+    document.cookie = "oauth_state=; path=/; max-age=0";
+    document.cookie = "account_type=; path=/; max-age=0";
     window.location.href = `/api/auth/login?accountType=target`;
   };
 
