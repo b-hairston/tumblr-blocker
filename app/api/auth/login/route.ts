@@ -19,6 +19,8 @@ export async function GET(req: NextRequest) {
     redirectUri
   )}&state=${state}&scope=basic write offline_access`;
 
+  console.log("Generated Tumblr Auth URL:", authUrl);
+
   const response = NextResponse.redirect(authUrl);
 
   // Clear cookies for current login attempt, keeping source account auth untouched
