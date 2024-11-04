@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Tumblr Block Transfer Tool
 
-## Getting Started
+This project is a web application that allows Tumblr users to transfer their block lists from one blog to another. Built using Next.js, the app leverages Tumblr's OAuth2 API to authenticate two separate accounts, retrieve the list of blocked blogs from a source account, and apply those blocks to a target account in bulk.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **OAuth2 Authentication** for source and target Tumblr accounts
+- **Retrieve Blocked Blogs** from the source account
+- **Bulk Block on Target Account** to apply the source's blocked list to the target account
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Table of Contents
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- [Installation](#installation)
+- [Setup and Configuration](#setup-and-configuration)
+- [Usage](#usage)
+- [Project Structure](#project-structure)
+- [Technical Details](#technical-details)
+- [Troubleshooting](#troubleshooting)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Installation
 
-## Learn More
+1. **Clone the Repository**
+   ```bash
+   git clone https://github.com/your-username/tumblr-block-transfer.git
+   cd tumblr-block-transfer
 
-To learn more about Next.js, take a look at the following resources:
+## Setup and Configuration
+Tumblr API Credentials
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Create a Tumblr application by visiting the Tumblr Developer Console. Once created, note the following:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+    Client ID (OAuth Consumer Key)
+    Client Secret
 
-## Deploy on Vercel
+Environment Variables
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Create a .env.local file in the project root with the following environment variables:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+env
+
+NEXT_PUBLIC_TUMBLR_CLIENT_ID=your_client_id
+TUMBLR_CLIENT_SECRET=your_client_secret
+NEXT_PUBLIC_REDIRECT_URI=http://localhost:3000/api/auth/callback
+
+Start the Development Server
+
+bash
+
+    npm run dev
+
+    Your application should now be running at http://localhost:3000.
+
+## Usage
+
+    Log into the Source Account
+        Click "Login with Tumblr (Source Account)" to authenticate and authorize access to the source Tumblr account.
+        After login, enter the Source Blog Identifier and click "Fetch Blocked Blogs".
+
+    Log into the Target Account
+        Click "Login with Tumblr (Target Account)" to authenticate and authorize access to the target Tumblr account.
+
+    Bulk Block on Target
+        Enter the Target Blog Identifier.
+        Click "Bulk Block on Target" to apply the source's blocked list to the target account.
+
+## Project Structure
+
+    app/ – Contains the Next.js app pages and API routes.
+        page.tsx – The main page where users can log in, retrieve blocks, and apply blocks to the target.
+        api/auth/ – Contains routes for handling Tumblr OAuth authentication.
+            login/route.ts – Initiates the login flow for source or target account.
+            callback/route.ts – Handles the OAuth callback and token exchange.
+            transfer/route.ts – Manages retrieving blocked blogs and performing bulk blocks.
+
+## Technical Details
+
+    OAuth2 Authentication: Uses Tumblr's OAuth2 API to securely authenticate both the source and target accounts.
+    Axios: Used for making API requests to Tumblr's endpoints.
+    Cookies: Used to store access tokens for the source and target accounts to maintain session states.
+
+## Troubleshooting
+Common Issues
+
+    OAuth Authentication Issues
+        If you encounter a 403 or 404 error during token exchange, ensure:
+            The correct Tumblr API endpoint is used.
+            Your client_id and client_secret are correct and set as environment variables.
+
+    Source Account Login Appears During Target Login
+        Due to Tumblr session caching, sometimes the source account authorization page appears while logging in as the target.
+        If this occurs, clear cookies or open a private/incognito window to ensure a fresh login.
+
+
