@@ -1,7 +1,6 @@
-// pages/api/transfer.ts
-import axios, { AxiosError } from "axios";
-import { NextApiRequest, NextApiResponse } from "next";
-import cookie from "cookie";
+import { NextRequest, NextResponse } from "next/server";
+import axios from "axios";
+import { parse } from "cookie";
 
 interface BlockedBlog {
   name: string;
@@ -13,70 +12,79 @@ interface BlockResponse {
   };
 }
 
-interface TransferRequestBody {
-  sourceBlog: string;
-  targetBlog: string;
-}
+// GET handler for retrieving blocked blogs from the source account
+export async function GET(req: NextRequest) {
+  const cookies = parse(req.headers.get("cookie") || "");
+  const sourceAccessToken = cookies.oauth_token_source;
+  const sourceBlog = req.nextUrl.searchParams.get("sourceBlog");
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Check for POST method
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: "Method Not Allowed" });
+  if (!sourceAccessToken) {
+    return NextResponse.json({ error: "Source account is not authenticated." }, { status: 401 });
   }
 
-  const { sourceBlog, targetBlog }: TransferRequestBody = req.body;
-
-  // Retrieve the access token from cookies
-  const cookies = cookie.parse(req.headers.cookie || "");
-  const accessToken = cookies.oauth_token_source; // Use the specific token for source
-
-  if (!accessToken) {
-    return res.status(401).json({ error: "Unauthorized" });
+  if (!sourceBlog) {
+    return NextResponse.json({ error: "Source blog ID is required." }, { status: 400 });
   }
 
   try {
-    // Fetch blocked blogs from the source account
     const blockedResponse = await axios.get<BlockResponse>(
       `https://api.tumblr.com/v2/blog/${sourceBlog}/blocks`,
       {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${sourceAccessToken}`,
         },
       }
     );
 
     if (!blockedResponse.data.response) {
-      return res.status(404).json({ error: "Blocked blogs not found." });
+      return NextResponse.json({ error: "Blocked blogs not found." }, { status: 404 });
     }
 
     const blockedBlogs = blockedResponse.data.response.blocked_tumblelogs;
+    return NextResponse.json({ blockedBlogs }, { status: 200 });
+  } catch (error) {
+    console.error("Failed to retrieve blocked blogs:", error);
+    return NextResponse.json({ error: "Failed to retrieve blocked blogs" }, { status: 500 });
+  }
+}
 
-    // Prepare the list of blocked tumblelogs
-    const blockedTumblelogs = blockedBlogs.map(blog => blog.name).join(',');
+// POST handler for bulk blocking blogs on the target account
+export async function POST(req: NextRequest) {
+  const cookies = parse(req.headers.get("cookie") || "");
+  const targetAccessToken = cookies.oauth_token_target;
 
-    // Block the list of blogs on the target account using the bulk block endpoint
+  const { targetBlog, blockedBlogs } = await req.json();
+
+  if (!targetAccessToken) {
+    return NextResponse.json({ error: "Target account is not authenticated." }, { status: 401 });
+  }
+
+  if (!targetBlog || !blockedBlogs || blockedBlogs.length === 0) {
+    return NextResponse.json({ error: "Target blog ID and blocked blogs are required." }, { status: 400 });
+  }
+
+  try {
     const bulkBlockResponse = await axios.post(
       `https://api.tumblr.com/v2/blog/${targetBlog}/blocks/bulk`,
       {
-        blocked_tumblelogs: blockedTumblelogs,
-        force: false, // Set to true if you want to force the block even if it cancels subscriptions
+        blocked_tumblelogs: blockedBlogs.join(","),
+        force: false,
       },
       {
         headers: {
-          Authorization: `Bearer ${accessToken}`, // Use the appropriate access token for the target account if needed
+          Authorization: `Bearer ${targetAccessToken}`,
         },
       }
     );
-
+    console.log("TARGET BLOG:",targetBlog)
     if (bulkBlockResponse.status === 200) {
-      res.status(200).json({ message: "Transfer completed successfully!" });
+      return NextResponse.json({ message: "Bulk block on target completed successfully!" });
     } else {
       console.error("Bulk block response:", bulkBlockResponse.data);
-      res.status(bulkBlockResponse.status).json({ error: "Failed to block some blogs." });
+      return NextResponse.json({ error: "Failed to block some blogs." }, { status: bulkBlockResponse.status });
     }
   } catch (error) {
-    const axiosError = error as AxiosError;
-    console.error("Failed to transfer blocks:", axiosError.response?.data || axiosError.message);
-    res.status(500).json({ error: "Failed to transfer blocks" });
+    console.error("Failed to bulk block on target:", error);
+    return NextResponse.json({ error: "Failed to bulk block on target." }, { status: 500 });
   }
 }
