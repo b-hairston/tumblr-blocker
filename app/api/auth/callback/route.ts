@@ -7,16 +7,13 @@ export async function GET(req: NextRequest) {
   const code = searchParams.get("code");
   const state = searchParams.get("state");
 
+  console.log("Callback URL parameters:", { code, state });
+  const cookies = parse(req.headers.get("cookie") || "");
+  console.log("Cookies received in callback:", cookies);
+
   if (!code || !state) {
     console.error("Missing code or state parameter");
     return NextResponse.json({ error: "Authorization code or state is missing" }, { status: 400 });
-  }
-
-  // CSRF protection
-  const cookies = parse(req.headers.get('cookie') || '');
-  if (state !== cookies.oauth_state) {
-    console.error("State mismatch for CSRF protection");
-    return NextResponse.json({ error: "Invalid state" }, { status: 403 });
   }
 
   const accountType = cookies.account_type;
