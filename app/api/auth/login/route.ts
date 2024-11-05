@@ -24,10 +24,16 @@ export async function GET(req: NextRequest) {
   const response = NextResponse.redirect(authUrl);
 
   // Clear cookies for current login attempt, keeping source account auth untouched
+  console.log("Generated state:", state);
   response.headers.append(
-    'Set-Cookie',
-    serialize('oauth_state', state, { path: '/', httpOnly: true })
-  );
+    "Set-Cookie",
+    serialize("oauth_state", state, {
+      path: "/",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    })
+);
   response.headers.append(
     'Set-Cookie',
     serialize('account_type', accountType, { path: '/', httpOnly: true })

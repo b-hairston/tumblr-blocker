@@ -6,6 +6,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const code = searchParams.get("code");
   const state = searchParams.get("state");
+  console.log("State in query parameter:", state);
 
   console.log("Callback URL parameters:", { code, state });
   const cookies = parse(req.headers.get("cookie") || "");
@@ -52,10 +53,11 @@ export async function GET(req: NextRequest) {
 
     response.headers.append(
       "Set-Cookie",
-      serialize(tokenCookieName, accessToken, {
+      serialize("oauth_state", state, {
         path: "/",
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
+        sameSite: "none"
       })
     );
 
