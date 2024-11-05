@@ -1,7 +1,7 @@
 // app/layout.tsx
-"use client";
 
 import "./globals.css";
+import Head from 'next/head';
 
 export default function RootLayout({
   children,
@@ -10,6 +10,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <Head>
+        <title>Tumblr Block Transfer Tool</title>
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+      </Head>
       <body>
         <div className="flex min-h-screen items-center justify-center bg-gray-100">
           <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
