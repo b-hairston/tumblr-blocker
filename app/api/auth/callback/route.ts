@@ -17,6 +17,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Authorization code or state is missing" }, { status: 400 });
   }
 
+  // CSRF protection
+  if (state !== cookies.oauth_state) {
+    console.error("State mismatch for CSRF protection");
+    return NextResponse.json({ error: "Invalid state" }, { status: 403 });
+  }
+
   const accountType = cookies.account_type;
   const clientId = process.env.NEXT_PUBLIC_TUMBLR_CLIENT_ID;
   const clientSecret = process.env.TUMBLR_CLIENT_SECRET;
@@ -30,7 +36,7 @@ export async function GET(req: NextRequest) {
       redirectUri,
     });
 
-    // Correct token request
+    // Token exchange request
     const tokenResponse = await axios.post(
       'https://api.tumblr.com/v2/oauth2/token',
       new URLSearchParams({
@@ -51,9 +57,10 @@ export async function GET(req: NextRequest) {
     const tokenCookieName = accountType === "source" ? "oauth_token_source" : "oauth_token_target";
     const response = NextResponse.redirect(`${req.nextUrl.origin}/`);
 
+    // Set the access token in the cookie for the respective account
     response.headers.append(
       "Set-Cookie",
-      serialize("oauth_state", state, {
+      serialize(tokenCookieName, accessToken, {
         path: "/",
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
@@ -61,6 +68,7 @@ export async function GET(req: NextRequest) {
       })
     );
 
+    // Clear oauth_state and account_type cookies
     response.headers.append("Set-Cookie", serialize("oauth_state", "", { path: "/", maxAge: -1 }));
     response.headers.append("Set-Cookie", serialize("account_type", "", { path: "/", maxAge: -1 }));
 
