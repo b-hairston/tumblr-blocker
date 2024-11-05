@@ -6,7 +6,7 @@ import crypto from 'crypto';
 export async function GET(req: NextRequest) {
   const tumblrAuthUrl = "https://www.tumblr.com/oauth2/authorize";
   const clientId = process.env.NEXT_PUBLIC_TUMBLR_CLIENT_ID;
-  const redirectUri = process.env.NEXT_PUBLIC_REDIRECT_URI;
+  const redirectUri = process.env.NEXT_PUBLIC_REDIRECT_URI || 'https://www.tumblr-blocker.xyz/api/auth/callback';
   const accountType = req.nextUrl.searchParams.get("accountType"); // "source" or "target"
 
   if (!clientId || !redirectUri || !accountType) {

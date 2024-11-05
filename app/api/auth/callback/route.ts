@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
   const accountType = cookies.account_type;
   const clientId = process.env.NEXT_PUBLIC_TUMBLR_CLIENT_ID;
   const clientSecret = process.env.TUMBLR_CLIENT_SECRET;
-  const redirectUri = process.env.NEXT_PUBLIC_REDIRECT_URI;
+  const redirectUri = process.env.NEXT_PUBLIC_REDIRECT_URI || 'https://www.tumblr-blocker.xyz/api/auth/callback';
 
   try {
     console.log("Attempting token exchange with the following parameters:", {
