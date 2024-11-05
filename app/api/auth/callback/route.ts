@@ -47,8 +47,8 @@ export async function GET(req: NextRequest) {
       }
     );
 
-    const accessToken = tokenResponse.data.access_token;
-    const tokenCookieName = accountType === "source" ? "oauth_token_source" : "oauth_token_target";
+    // const accessToken = tokenResponse.data.access_token;
+    // const tokenCookieName = accountType === "source" ? "oauth_token_source" : "oauth_token_target";
     const response = NextResponse.redirect(`${req.nextUrl.origin}/`);
 
     response.headers.append(
